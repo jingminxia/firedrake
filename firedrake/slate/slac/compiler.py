@@ -489,16 +489,15 @@ def tensor_assembly_calls(builder):
         statements.append(ast.FlatBlock("/* Mesh levels: */\n"))
         num_layers = ast.Symbol(builder.mesh_layer_count_sym, rank=(0,))
         layer = builder.mesh_layer_sym
-        int_top = "interior_facet_horiz_top"
-        int_btm = "interior_facet_horiz_bottom"
-        ext_top = "exterior_facet_top"
-        ext_btm = "exterior_facet_bottom"
-
-        for integral_type in [int_top, int_btm, ext_top, ext_btm]:
-            which = {"interior_facet_horiz_top": ast.Less(layer, num_layers),
-                     "interior_facet_horiz_bottom": ast.Greater(layer, 0),
-                     "exterior_facet_top": ast.Eq(layer, num_layers),
-                     "exterior_facet_bottom": ast.Eq(layer, 0)}[integral_type]
+        types = ["interior_facet_horiz_top",
+                 "interior_facet_horiz_bottom",
+                 "exterior_facet_top",
+                 "exterior_facet_bottom"]
+        decide = [ast.Less(layer, num_layers),
+                  ast.Greater(layer, 0),
+                  ast.Eq(layer, num_layers),
+                  ast.Eq(layer, 0)]
+        for (integral_type, which) in zip(types, decide):
             statements.append(ast.If(which, (ast.Block(assembly_calls[integral_type], open_scope=True),)))
 
     return statements
