@@ -487,19 +487,19 @@ def tensor_assembly_calls(builder):
 
         # FIXME: No variable layers assumption
         statements.append(ast.FlatBlock("/* Mesh levels: */\n"))
-        num_layers = ast.Symbol(builder.mesh_layer_count_sym,
-                                rank=(0,))
-        int_top = assembly_calls["interior_facet_horiz_top"]
-        int_btm = assembly_calls["interior_facet_horiz_bottom"]
-        ext_top = assembly_calls["exterior_facet_top"]
-        ext_btm = assembly_calls["exterior_facet_bottom"]
+        num_layers = ast.Symbol(builder.mesh_layer_count_sym, rank=(0,))
+        layer = builder.mesh_layer_sym
+        int_top = "interior_facet_horiz_top"
+        int_btm = "interior_facet_horiz_bottom"
+        ext_top = "exterior_facet_top"
+        ext_btm = "exterior_facet_bottom"
 
-        eq_layer = ast.Eq(builder.mesh_layer_sym, num_layers)
-        bottom = ast.Block(int_top + ext_btm, open_scope=True)
-        top = ast.Block(int_btm + ext_top, open_scope=True)
-        rest = ast.Block(int_btm + int_top, open_scope=True)
-        statements.append(ast.If(ast.Eq(builder.mesh_layer_sym, 0),
-                                 (bottom, ast.If(eq_layer, (top, rest)))))
+        for integral_type in [int_top, int_btm, ext_top, ext_btm]:
+            which = {"interior_facet_horiz_top": ast.Less(layer, num_layers),
+                     "interior_facet_horiz_bottom": ast.Greater(layer, 0),
+                     "exterior_facet_top": ast.Eq(layer, num_layers),
+                     "exterior_facet_bottom": ast.Eq(layer, 0)}[integral_type]
+            statements.append(ast.If(which, (ast.Block(assembly_calls[integral_type], open_scope=True),)))
 
     return statements
 
