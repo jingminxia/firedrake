@@ -1,6 +1,6 @@
 # cython: language_level=3
 
-# Utility functions to derive global and local numbering from DMPlex
+# Utility functions common to all DMs used in Firedrake
 import cython
 import numpy as np
 from firedrake.petsc import PETSc
